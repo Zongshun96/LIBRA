@@ -23,7 +23,7 @@ logging.getLogger('urllib3').setLevel(logging.CRITICAL)
 # debug
 # AutoScalingClient = boto3.client('autoscaling')
 
-LambdaClient = boto3.client('lambda',config=Config(read_timeout=120, retries={'max_attempts': 0}))
+# LambdaClient = boto3.client('lambda',config=Config(read_timeout=120, retries={'max_attempts': 0}))
 # AutoScalingClient = boto3.client('autoscaling')
 
 
@@ -102,7 +102,7 @@ def VM_Send_Request(n, epoch):
      for i in range(1, n+1):
          # from time import sleep
          # time.sleep(0.2)
-         threading.Thread(target=request_VM_AWS_LB, args=(config.url, config.payload, config.headers, i, epoch)).start()
+         threading.Thread(target=request_VM_AWS_LB, args=(config.alb_url, config.payload, config.headers, i, epoch)).start()
 
 # using simple Round Robin LB
 #def VM_Send_Request(n, epoch):
@@ -138,17 +138,19 @@ s = {
   "key3": "value3"
 }
 
-def request_serverless(LambdaClient, i, epoch):
+def request_serverless(url, payload, headers, i, epoch, LambdaClient=None):
     start   = time.time()
     try:
-        response = LambdaClient.invoke(
-            # ClientContext='MyApp',
-            FunctionName=config.FunctionName,
-            # InvocationType='Event',
-            LogType='Tail',
-            Payload=json.dumps(s),
-            # Qualifier='1',
-        )
+        # response = LambdaClient.invoke(
+        #     # ClientContext='MyApp',
+        #     FunctionName=config.FunctionName,
+        #     # InvocationType='Event',
+        #     LogType='Tail',
+        #     Payload=json.dumps(s),
+        #     # Qualifier='1',
+        # )
+        response     = requests.post(url, data=payload, headers=headers)
+        
     except:
         response = None
     end   = time.time()
@@ -158,20 +160,24 @@ def request_serverless(LambdaClient, i, epoch):
         logger.info(
             "!!(Serverless): requestID(epoch, starttime, localID): " + str(epoch) + ", " + str(start) + ", " + str(i))
     else:
-        response_dict = json.loads((response["Payload"].read()).decode('utf-8'))
+        # response_dict = json.loads((response["Payload"].read()).decode('utf-8'))
+        response_dict = json.loads(response.text)
 
-        print("(Serverless): requestID(epoch, starttime, localID), predicttime, TurnAroundTime, statusCode: "+str(epoch)+", "+str(start)+", "+str(i)+", "+ str(response_dict["predicttime"]) + ", " + str(end - start) +", "+str(response["ResponseMetadata"]["HTTPStatusCode"]))
-        logger.info("!!(Serverless): requestID(epoch, starttime, localID), predicttime, TurnAroundTime, statusCode: " + str(epoch) + ", "+str(start)+", "+str(i) + ", " + str(response_dict["predicttime"]) + ", " + str(end - start) + ", " + str(response["ResponseMetadata"]["HTTPStatusCode"]))
+        # print("(Serverless): requestID(epoch, starttime, localID), predicttime, TurnAroundTime, statusCode: "+str(epoch)+", "+str(start)+", "+str(i)+", "+ str(response_dict["predicttime"]) + ", " + str(end - start) +", "+str(response["ResponseMetadata"]["HTTPStatusCode"]))
+        # logger.info("!!(Serverless): requestID(epoch, starttime, localID), predicttime, TurnAroundTime, statusCode: " + str(epoch) + ", "+str(start)+", "+str(i) + ", " + str(response_dict["predicttime"]) + ", " + str(end - start) + ", " + str(response["ResponseMetadata"]["HTTPStatusCode"]))
+        print("(Serverless): requestID(epoch, starttime, localID), predicttime, TurnAroundTime, statusCode: "+str(epoch)+", "+str(start)+", "+str(i)+", "+ str(response_dict["predicttime"]) + ", " + str(end - start) +", "+str(response.status_code))
+        logger.info("!!(Serverless): requestID(epoch, starttime, localID), predicttime, TurnAroundTime, statusCode: " + str(epoch) + ", "+str(start)+", "+str(i) + ", " + str(response_dict["predicttime"]) + ", " + str(end - start) + ", " + str(response.status_code))
 
 def SER_Send_Request(n, epoch):
-    print("!!!!!")
+    # print("SER_Send_Request")
     if n < 0:
         return
     # logger.info(
     #     "requests served by Serverless at epoch: {0}, {1}".format(epoch, n))
     # LambdaClient = boto3.client('lambda')
     for i in range(1, n+1):
-        threading.Thread(target=request_serverless, args=(LambdaClient, i, epoch)).start()
+        threading.Thread(target=request_serverless, args=(config.lambda_url, config.payload, config.headers, i, epoch)).start()
+        # threading.Thread(target=request_serverless, args=(LambdaClient, i, epoch)).start()
 
 
 config = configuration.configuration()
@@ -186,7 +192,8 @@ if __name__ == "__main__":
     epoch_time = 1
     while True:
         t1 = time.time()
-        VM_Send_Request(1, 1)
+        # VM_Send_Request(1, 1)
+        SER_Send_Request(1, 1)
         time.sleep(epoch_time - (time.time() - t1) % epoch_time)
 
     # SER_Send_Request(1, 1)

@@ -59,12 +59,8 @@ def setup_auto_scaling():
 
         response = client.create_auto_scaling_group(
             AutoScalingGroupName=config.auto_scaling_group_name,
-            LaunchConfigurationName=config.launch_configuration_name,
-            # LaunchTemplate={
-            #     'LaunchTemplateId': 'string',
-            #     'LaunchTemplateName': 'string',
-            #     'Version': 'string'
-            # },
+            # LaunchConfigurationName=config.launch_configuration_name,
+            LaunchTemplate=config.launch_template,
             # MixedInstancesPolicy={
             #     'LaunchTemplate': {
             #         'LaunchTemplateSpecification': {
@@ -128,7 +124,7 @@ def setup_auto_scaling():
             #         'PropagateAtLaunch': True|False
             #     },
             # ],
-            ServiceLinkedRoleARN=config.service_linked_role_ARN
+            # ServiceLinkedRoleARN=config.service_linked_role_ARN
             # MaxInstanceLifetime=123
         )
 
