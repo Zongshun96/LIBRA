@@ -160,7 +160,7 @@ def setup_auto_scaling():
                 # MinAdjustmentStep=1,
                 # MinAdjustmentMagnitude=2,
                 ScalingAdjustment=2,
-                Cooldown=300,
+                Cooldown=config.PolicyCooldown,
                 # MetricAggregationType='string',
                 # StepAdjustments=[
                 #     {
