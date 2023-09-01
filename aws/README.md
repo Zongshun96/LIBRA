@@ -16,6 +16,12 @@ To run the experiment,
 1. After that run `python3 run_experiment.py`. Check your autoscaling group as its `desire replica` is changing. And there will be a log file for each requests in the dir you run the script.
 1. Finally, we can plot the cost and statistics using our [plotting script](https://github.com/Zongshun96/AWS_EC2_Evaluations). The results should corresponding to our plots in the paper. 
 
+## Reproducing with Chameleon Cloud
+Our implementations, i.e., `hybrid` and `vm_cloud_max`, could be modified to use Chameleon Cloud CLI for VM provisionoing using KVM@TACC ([console tutorial](https://chameleoncloud.readthedocs.io/en/latest/technical/kvm.html#launching-instances)) and a load balancer ([console tutorial](https://chameleoncloud.readthedocs.io/en/latest/technical/kvm.html#load-balancer-as-a-service)).
+Baremetal machine can also be considered ([CLI tutorial for instances](https://chameleoncloud.readthedocs.io/en/latest/technical/baremetal.html#creating-an-instance-with-the-cli) and [CLI tutorial for reservations](https://chameleoncloud.readthedocs.io/en/latest/technical/reservations.html#creating-a-lease-to-reserve-physical-hosts)). 
+However, since the provisioning time for baremetal machine can be long (usuall more than 30 mins), it might not be ideal for experiments using highly dynamic workloads.
+Also, `vm_cloud_hide` and `vm_cloud` implementation rely on AWS autoscaling which doesn't exist in Chameleon Cloud.
+Thus, it is not easy to reproduce those experiments using Chameleon.
 
 # Files
 `run_experiment.py`
